@@ -1,0 +1,9 @@
+[package]
+name = "rlzjb"
+version = "0.1.0"
+authors = ["Colin Valliant <alcarithemad@gmail.com>"]
+
+[dependencies]
+
+[lib]
+crate-type = ["dylib"]
