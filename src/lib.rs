@@ -20,18 +20,17 @@ pub fn decompress(bs: &[u8], size: usize) -> Vec<u8> {
                     let pivot = out.len();
                     out.resize(pivot+length, 0);
 
-                    let (first, mut end) = out.split_at_mut(pivot);
+                    let (first, end) = out.split_at_mut(pivot);
 
                     let backref = &first[first.len()-distance..];
-                    let stride = length / distance;
 
-                    for i in 0..stride {
-                        end[(i*distance)..((i+1)*distance)].clone_from_slice(backref);
+                    for i in 0..(length / distance) {
+                        end[(i*distance)..((i+1)*distance)].copy_from_slice(backref);
                     }
 
                     let final_stride = length % distance;
                     let endl = end.len();
-                    end[endl-final_stride..].clone_from_slice(&backref[..final_stride]);
+                    end[endl-final_stride..].copy_from_slice(&backref[..final_stride]);
                 }
             }
         }
