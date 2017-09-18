@@ -1,4 +1,6 @@
+use std::mem;
 use std::slice;
+use std::vec;
 
 pub fn decompress(bs: &[u8], size: usize) -> Vec<u8> {
     let blen = bs.len();
@@ -41,20 +43,33 @@ pub fn decompress(bs: &[u8], size: usize) -> Vec<u8> {
 
 #[repr(C)]
 pub struct DecompressionResult {
+    success: bool,
     size: usize,
     data: *const u8,
+    capacity: usize,
 }
 
 #[no_mangle]
 pub extern fn decompress_external(bs_ptr: *const u8, bs_size: usize, size: usize) -> DecompressionResult {
     let bs;
     unsafe {
+        if bs_ptr.is_null() {
+            return DecompressionResult{success: false, size: 0, data: bs_ptr, capacity: 0 }
+        }
         bs = slice::from_raw_parts(bs_ptr, bs_size);
     }
     let out = decompress(bs, size);
-    DecompressionResult{size: out.len(), data: out.as_ptr()}
+    let ret = DecompressionResult{success: true, size: out.len(), data: out.as_ptr(), capacity: out.capacity() };
+    mem::forget(out);
+    ret
 }
 
+#[no_mangle]
+pub extern fn free_result(result: DecompressionResult) {
+    let s = unsafe {
+        vec::Vec::from_raw_parts(result.data as (*mut u8), result.size, result.capacity)
+    };
+}
 
 #[cfg(test)]
 mod tests {
