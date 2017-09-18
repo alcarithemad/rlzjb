@@ -6,4 +6,4 @@ authors = ["Colin Valliant <alcarithemad@gmail.com>"]
 [dependencies]
 
 [lib]
-crate-type = ["dylib"]
+crate-type = ["rlib", "cdylib"]
