@@ -10,30 +10,27 @@ pub fn decompress(bs: &[u8], size: usize) -> Vec<u8> {
         let control = bs[pos];
         pos += 1;
         for i in 0..8 {
-            match control & (1 << i) == 0 {
-                true => {
-                    out.push(bs[pos]);
-                    pos += 1;
+            if control & (1 << i) == 0 {
+                out.push(bs[pos]);
+                pos += 1;
+            } else {
+                let length = ((bs[pos] >> 2) + 3) as usize;
+                let distance = ((bs[pos] & 0b11) as usize) << 8 | bs[pos+1] as usize;
+                pos += 2;
+                let pivot = out.len();
+                out.resize(pivot+length, 0);
+
+                let (first, end) = out.split_at_mut(pivot);
+
+                let backref = &first[first.len()-distance..];
+
+                for i in 0..(length / distance) {
+                    end[(i*distance)..((i+1)*distance)].copy_from_slice(backref);
                 }
-                false => {
-                    let length = ((bs[pos] >> 2) + 3) as usize;
-                    let distance = ((bs[pos] & 0b11) as usize) << 8 | bs[pos+1] as usize;
-                    pos += 2;
-                    let pivot = out.len();
-                    out.resize(pivot+length, 0);
 
-                    let (first, end) = out.split_at_mut(pivot);
-
-                    let backref = &first[first.len()-distance..];
-
-                    for i in 0..(length / distance) {
-                        end[(i*distance)..((i+1)*distance)].copy_from_slice(backref);
-                    }
-
-                    let final_stride = length % distance;
-                    let endl = end.len();
-                    end[endl-final_stride..].copy_from_slice(&backref[..final_stride]);
-                }
+                let final_stride = length % distance;
+                let endl = end.len();
+                end[endl-final_stride..].copy_from_slice(&backref[..final_stride]);
             }
         }
     }
