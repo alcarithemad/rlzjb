@@ -6,7 +6,7 @@ pub fn decompress(bs: &[u8], size: usize) -> Vec<u8> {
     let blen = bs.len();
     let mut out: Vec<u8> = Vec::with_capacity(blen);
     let mut pos = 0;
-    while pos < blen && out.len() < size {
+    while pos+9 < blen && out.len() < size {
         let control = bs[pos];
         pos += 1;
         for i in 0..8 {
