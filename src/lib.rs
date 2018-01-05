@@ -6,10 +6,13 @@ pub fn decompress(bs: &[u8], size: usize) -> Option<Vec<u8>> {
     let blen = bs.len();
     let mut out: Vec<u8> = Vec::with_capacity(blen);
     let mut pos = 0;
-    while pos+9 < blen && out.len() < size {
+    while pos < blen && out.len() < size {
         let control = bs.get(pos)?;
         pos += 1;
         for i in 0..8 {
+            if ! (pos < blen) {
+                break
+            }
             if control & (1 << i) == 0 {
                 out.push(*bs.get(pos)?);
                 pos += 1;
